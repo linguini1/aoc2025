@@ -1,0 +1,7 @@
+# Puzzle input
+input.txt
+day*
+
+# C stuff
+*.o
+!day.mk
