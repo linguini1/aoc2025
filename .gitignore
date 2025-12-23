@@ -1,7 +1,7 @@
-# Puzzle input
 input.txt
-day*
-
-# C stuff
 *.o
+day*
 !day.mk
+
+.cache/
+compile_commands.json
