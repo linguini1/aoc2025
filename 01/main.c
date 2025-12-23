@@ -29,19 +29,29 @@ static void to_move(const char *movestr, struct move_s *move)
     move->times = strtoul(&movestr[1], NULL, 10);
 }
 
-static uint16_t move_dial(uint16_t dialpos, struct move_s *move)
+static uint16_t move_dial(uint16_t dialpos, struct move_s *move,
+                          uint32_t *zeroes_pw)
 {
     uint16_t eq_moves;
     switch (move->rot)
         {
         case R_RIGHT:
+            *zeroes_pw += (dialpos + move->times) / DIAL_MOD;
             return (dialpos + move->times) % DIAL_MOD;
+
         case R_LEFT:
             eq_moves = move->times % DIAL_MOD;
+            *zeroes_pw += move->times / DIAL_MOD;
             if (eq_moves > dialpos)
-                return DIAL_MOD - (eq_moves - dialpos);
+                {
+                    if (dialpos != 0) (*zeroes_pw)++;
+                    return DIAL_MOD - (eq_moves - dialpos);
+                }
             else
-                return dialpos - eq_moves;
+                {
+                    if (dialpos - eq_moves == 0) (*zeroes_pw)++;
+                    return dialpos - eq_moves;
+                }
         }
     assert(0 && "Unreachable");
 }
@@ -52,6 +62,7 @@ int main(void)
     struct move_s move;
     uint16_t dialpos = DIAL_INIT_POS;
     uint32_t zeroes = 0;
+    uint32_t zeroes_pw = 0;
 
     FILE *file = fopen("input.txt", "r");
     if (file == NULL)
@@ -64,12 +75,13 @@ int main(void)
         {
             if (fgets(movement_str, sizeof(movement_str), file) == NULL) break;
             to_move(movement_str, &move);
-            dialpos = move_dial(dialpos, &move);
+            dialpos = move_dial(dialpos, &move, &zeroes_pw);
 
             if (dialpos == 0) zeroes++;
         }
 
     printf("%u\n", zeroes);
+    printf("%u\n", zeroes_pw);
 
     return EXIT_SUCCESS;
 }
